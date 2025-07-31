@@ -16,7 +16,20 @@ export const storeToken = (token: string) => {
   localStorage.setItem("token", encryptedToken);
 };
 
+export const clearToken = () => {
+  localStorage.removeItem("token");
+};
+
 export const getToken = () => {
-  const token = localStorage.getItem("token");
-  return token ? decryptToken(token) : null;
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+
+    const decrypted = decryptToken(token);
+    return decrypted || null;
+  } catch (error) {
+    console.warn("Token decryption failed, clearing stored token:", error);
+    localStorage.removeItem("token");
+    return null;
+  }
 };

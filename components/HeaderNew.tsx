@@ -8,7 +8,6 @@ import { logout } from '@/lib/redux/reducers/user';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from "next/link";
-import { CiUser } from "react-icons/ci";
 
 interface HeaderProps {
     onMenuClick: () => void;
@@ -138,12 +137,3 @@ export function Header({ onMenuClick }: HeaderProps) {
         </header>
     );
 }
-    <div className="mt-2 py-2 first:pt-0 last:pb-0">
-        <Link
-            className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
-            href="#"
-        >
-            <CiUser size={20} />
-            Profile
-        </Link>
-    </div>

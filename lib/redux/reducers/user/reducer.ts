@@ -3,24 +3,20 @@ import storage from "redux-persist/lib/storage";
 import { persistReducer, PersistConfig } from "redux-persist";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
-interface Role {
-  id: number;
-  roleType: string;
-}
-
 interface UserState {
   loggedIn: boolean;
   emailOrPhone: string;
-  role: Role;
+  role: string;
+  token: string | null;
+  user: any | null;
 }
 
 const initialState: UserState = {
   loggedIn: false,
   emailOrPhone: "",
-  role: {
-    id: 0,
-    roleType: "",
-  },
+  role: "",
+  token: null,
+  user: null,
 };
 
 const userSlice = createSlice({
@@ -35,13 +31,36 @@ const userSlice = createSlice({
       state.emailOrPhone = action.payload;
     },
 
-    setUserRole: (state, action: PayloadAction<Role>) => {
+    setUserRole: (state, action: PayloadAction<string>) => {
       state.role = action.payload;
+    },
+
+    setToken: (state, action: PayloadAction<string | null | undefined>) => {
+      state.token = action.payload || null;
+      state.loggedIn = !!action.payload;
+    },
+
+    setUser: (state, action: PayloadAction<any>) => {
+      state.user = action.payload;
+      if (action.payload) {
+        state.emailOrPhone = action.payload.email || "";
+        state.role = action.payload.role || "";
+        state.loggedIn = true;
+      }
+    },
+
+    logout: (state) => {
+      state.loggedIn = false;
+      state.emailOrPhone = "";
+      state.role = "";
+      state.token = null;
+      state.user = null;
     },
   },
 });
 
-export const { setLoggedIn, setUserEmailOrPhone, setUserRole } = userSlice.actions;
+export const { setLoggedIn, setUserEmailOrPhone, setUserRole, setToken, setUser, logout } =
+  userSlice.actions;
 
 const reducer = userSlice.reducer;
 
