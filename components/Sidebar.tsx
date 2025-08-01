@@ -39,7 +39,7 @@ export function Sidebar({ active }: Props) {
                 <Link
                     className="flex-none rounded-xl text-xl inline-block font-semibold focus:outline-none focus:opacity-80"
                     href="/dashboard"
-                    aria-label="WarpSpeed"
+                    aria-label="soldier"
                 >
                     <Image src="/warpspeedLogo.jpg" alt="" width={150} height={150} />
                 </Link>

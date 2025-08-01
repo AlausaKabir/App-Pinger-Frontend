@@ -12,6 +12,11 @@ export interface Service {
 export interface CreateServiceRequest {
   name: string;
   url: string;
+  method?: string;
+  timeout?: number;
+  interval?: number;
+  expectedStatus?: number;
+  description?: string;
 }
 
 export interface ServiceResponse {
@@ -35,6 +40,7 @@ export const getServices = async (): Promise<ServiceResponse> => {
 // Add a new service
 export const addService = async (serviceData: CreateServiceRequest): Promise<ServiceResponse> => {
   try {
+    console.log("🔍 Adding service with data:", serviceData);
     const response = await API.post("/service-check/register", serviceData);
     return response.data;
   } catch (error) {

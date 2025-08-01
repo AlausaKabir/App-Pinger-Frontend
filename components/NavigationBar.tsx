@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaServer, FaEnvelope, FaUsers, FaHome, FaShieldAlt } from 'react-icons/fa';
+import { FaServer, FaEnvelope, FaUsers, FaHome, FaShieldAlt, FaCog, FaChartBar, FaBell } from 'react-icons/fa';
 import { hasPermission, UserRole } from '@/utils/permissions';
 
 interface NavItem {
@@ -21,6 +21,21 @@ const navigationItems: NavItem[] = [
         icon: FaHome,
     },
     {
+        href: '/dashboard/services',
+        label: 'Services',
+        icon: FaServer,
+    },
+    {
+        href: '/dashboard/analytics',
+        label: 'Analytics',
+        icon: FaChartBar,
+    },
+    {
+        href: '/dashboard/email',
+        label: 'Email Notifications',
+        icon: FaBell,
+    },
+    {
         href: '/admin/emails',
         label: 'Email Management',
         icon: FaEnvelope,
@@ -31,6 +46,11 @@ const navigationItems: NavItem[] = [
         label: 'User Management',
         icon: FaUsers,
         permission: 'canManageUsers',
+    },
+    {
+        href: '/dashboard/settings',
+        label: 'Settings',
+        icon: FaCog,
     },
 ];
 
@@ -67,8 +87,8 @@ export default function NavigationBar() {
                                     key={item.href}
                                     href={item.href}
                                     className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                                            : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
                                         }`}
                                 >
                                     <Icon className="h-4 w-4" />

@@ -17,6 +17,8 @@ export default function DashboardPage() {
     const [newService, setNewService] = useState({ name: '', url: '' });
     const [isAdding, setIsAdding] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+    const [autoRefresh, setAutoRefresh] = useState(true);
 
     const { role } = useSelector((state: RootState) => state.user);
     const userRole = role as UserRole;
@@ -25,30 +27,50 @@ export default function DashboardPage() {
     const canDeleteServices = hasPermission(userRole, 'canDeleteServices');
 
     // Load services from API
-    const loadServices = async () => {
+    const loadServices = async (silent = false) => {
         try {
-            setIsLoading(true);
+            if (!silent) setIsLoading(true);
             const response = await getServices();
             if (response.statusCode === 200) {
                 // Handle both single service and array responses
                 const servicesData = Array.isArray(response.data) ? response.data : [response.data];
                 setServices(servicesData.filter(Boolean)); // Filter out any null/undefined items
+                setLastUpdated(new Date());
             }
         } catch (error: any) {
             console.error('Failed to load services:', error);
             if (error.response?.status === 404 || error.response?.data?.message?.includes('No services found')) {
                 // No services found - this is normal for new users
                 setServices([]);
-            } else {
+                setLastUpdated(new Date());
+            } else if (!silent) {
                 toast.error('Failed to load services. Please try again.');
             }
         } finally {
-            setIsLoading(false);
+            if (!silent) setIsLoading(false);
         }
     };
 
     useEffect(() => {
         loadServices();
+    }, []);
+
+    // Auto-refresh effect - sync with backend every 30 seconds
+    useEffect(() => {
+        if (!autoRefresh) return;
+
+        const interval = setInterval(() => {
+            loadServices(true); // Silent refresh to avoid loading states
+        }, 30000); // Refresh every 30 seconds
+
+        return () => clearInterval(interval);
+    }, [autoRefresh]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            // Clear any ongoing intervals when component unmounts
+        };
     }, []);
 
     const handleRefresh = async () => {
@@ -139,15 +161,35 @@ export default function DashboardPage() {
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                Service Dashboard
-                            </h1>
+                            <div className="flex items-center space-x-3">
+                                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                    Service Dashboard
+                                </h1>
+                                <div className={`flex items-center space-x-2 ${autoRefresh ? 'status-live' : ''}`}>
+                                    <div className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                        {autoRefresh ? 'Live' : 'Paused'}
+                                    </span>
+                                </div>
+                            </div>
                             <p className="text-gray-600 dark:text-gray-400 mt-1">
-                                Monitor your services in real-time
+                                Monitor your services in real-time • Last updated: {lastUpdated.toLocaleTimeString()}
                             </p>
                         </div>
 
                         <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+                            <button
+                                onClick={() => setAutoRefresh(!autoRefresh)}
+                                className={`inline-flex items-center px-3 py-2 text-xs font-medium rounded-lg transition-colors ${autoRefresh
+                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                                        : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                                    }`}
+                                title={autoRefresh ? 'Disable auto-refresh' : 'Enable auto-refresh'}
+                            >
+                                <div className={`w-2 h-2 rounded-full mr-2 ${autoRefresh ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                                Auto-refresh
+                            </button>
+
                             <button
                                 onClick={handleRefresh}
                                 disabled={isRefreshing}
@@ -215,7 +257,12 @@ export default function DashboardPage() {
                         {services.map((service) => (
                             <div
                                 key={service.id}
-                                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+                                className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 p-6 hover:shadow-md transition-all duration-300 ${service.healthStatus === 'DOWN'
+                                        ? 'service-down-intense border-red-500 dark:border-red-400'
+                                        : service.healthStatus === 'UP'
+                                            ? 'service-up border-green-200 dark:border-green-800'
+                                            : 'border-gray-200 dark:border-gray-700'
+                                    }`}
                             >
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
