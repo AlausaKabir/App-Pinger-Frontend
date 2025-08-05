@@ -98,13 +98,46 @@ export default function UserManagementPage() {
 
     if (!canManageUsers) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-                <div className="text-center">
-                    <FaShieldAlt className="text-6xl text-red-500 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Access Denied</h1>
-                    <p className="text-gray-600 dark:text-gray-400">
-                        You do not have permission to manage users.
-                    </p>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+                <div className="max-w-md mx-auto pt-20">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center border border-gray-200 dark:border-gray-700">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full mb-6">
+                            <FaShieldAlt className="text-2xl text-red-600 dark:text-red-400" />
+                        </div>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                            SuperAdmin Access Required
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                            User management is restricted to SuperAdmin accounts only.
+                            You currently have {role} permissions.
+                        </p>
+
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Your current role:</span>
+                                <span className={`inline-flex px-2 py-1 text-xs rounded-full font-medium ${getRoleBadgeColor(userRole)}`}>
+                                    {role}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-6">
+                            <p className="mb-2">To access user management, you need:</p>
+                            <div className="flex items-center justify-center space-x-2">
+                                <span className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300 px-2 py-1 rounded-full text-xs font-medium">
+                                    SUPERADMIN
+                                </span>
+                                <span>permissions</span>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => window.history.back()}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                        >
+                            Go Back
+                        </button>
+                    </div>
                 </div>
             </div>
         );

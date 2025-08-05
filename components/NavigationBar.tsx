@@ -4,14 +4,17 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaServer, FaEnvelope, FaUsers, FaHome, FaShieldAlt, FaCog, FaChartBar, FaBell } from 'react-icons/fa';
+import { FaServer, FaEnvelope, FaUsers, FaHome, FaShieldAlt, FaCog, FaChartBar, FaBell, FaCrown, FaUser } from 'react-icons/fa';
 import { hasPermission, UserRole } from '@/utils/permissions';
+import { ComingSoonButton, ComingSoonFeatures } from './ComingSoon';
 
 interface NavItem {
-    href: string;
+    href?: string;
     label: string;
     icon: React.ComponentType<any>;
     permission?: keyof import('@/utils/permissions').RolePermissions;
+    comingSoon?: boolean;
+    comingSoonKey?: keyof typeof ComingSoonFeatures;
 }
 
 const navigationItems: NavItem[] = [
@@ -26,14 +29,15 @@ const navigationItems: NavItem[] = [
         icon: FaServer,
     },
     {
-        href: '/dashboard/analytics',
         label: 'Analytics',
         icon: FaChartBar,
+        comingSoon: true,
+        comingSoonKey: 'Analytics',
     },
     {
-        href: '/dashboard/email',
         label: 'Email Notifications',
         icon: FaBell,
+        comingSoon: true,
     },
     {
         href: '/admin/emails',
@@ -48,9 +52,16 @@ const navigationItems: NavItem[] = [
         permission: 'canManageUsers',
     },
     {
-        href: '/dashboard/settings',
+        href: '/admin/superadmin',
+        label: 'SuperAdmin Panel',
+        icon: FaCrown,
+        permission: 'canAccessSuperAdmin',
+    },
+    {
         label: 'Settings',
         icon: FaCog,
+        comingSoon: true,
+        comingSoonKey: 'Settings',
     },
 ];
 
@@ -78,18 +89,41 @@ export default function NavigationBar() {
 
                     {/* Navigation Items */}
                     <div className="flex items-center space-x-6">
-                        {visibleItems.map((item) => {
-                            const isActive = pathname === item.href;
+                        {visibleItems.map((item, index) => {
+                            const isActive = item.href && pathname === item.href;
                             const Icon = item.icon;
+
+                            const baseClassName = `flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
+                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                }`;
+
+                            if (item.comingSoon) {
+                                const feature = item.comingSoonKey ? ComingSoonFeatures[item.comingSoonKey] : {
+                                    name: item.label,
+                                    description: `${item.label} feature is coming soon with enhanced functionality.`,
+                                    icon: <Icon className="text-blue-600 dark:text-blue-400 text-2xl" />
+                                };
+
+                                return (
+                                    <ComingSoonButton
+                                        key={index}
+                                        featureName={feature.name}
+                                        description={feature.description}
+                                        icon={feature.icon}
+                                        className={baseClassName}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        <span>{item.label}</span>
+                                    </ComingSoonButton>
+                                );
+                            }
 
                             return (
                                 <Link
                                     key={item.href}
-                                    href={item.href}
-                                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                        }`}
+                                    href={item.href!}
+                                    className={baseClassName}
                                 >
                                     <Icon className="h-4 w-4" />
                                     <span>{item.label}</span>
@@ -100,20 +134,25 @@ export default function NavigationBar() {
 
                     {/* User Info */}
                     <div className="flex items-center space-x-3">
-                        <div className="text-right">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {user?.email}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                                <FaShieldAlt className="mr-1" />
-                                {role}
-                            </p>
-                        </div>
-                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                            <span className="text-white text-sm font-medium">
-                                {user?.email?.charAt(0).toUpperCase()}
-                            </span>
-                        </div>
+                        <Link
+                            href="/profile"
+                            className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                            <div className="text-right">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {user?.email}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                                    <FaShieldAlt className="mr-1" />
+                                    {role}
+                                </p>
+                            </div>
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                <span className="text-white text-sm font-medium">
+                                    {user?.email?.charAt(0).toUpperCase()}
+                                </span>
+                            </div>
+                        </Link>
                     </div>
                 </div>
             </div>

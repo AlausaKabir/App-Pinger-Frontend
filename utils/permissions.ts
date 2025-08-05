@@ -6,6 +6,10 @@ export interface RolePermissions {
   canManageUsers: boolean;
   canViewHealthChecks: boolean;
   canDeleteServices: boolean;
+  canViewDashboard: boolean;
+  canViewAnalytics: boolean;
+  canManageSettings: boolean;
+  canAccessSuperAdmin: boolean;
 }
 
 export const getRolePermissions = (role: UserRole): RolePermissions => {
@@ -17,6 +21,10 @@ export const getRolePermissions = (role: UserRole): RolePermissions => {
         canManageUsers: true,
         canViewHealthChecks: true,
         canDeleteServices: true,
+        canViewDashboard: true,
+        canViewAnalytics: true,
+        canManageSettings: true,
+        canAccessSuperAdmin: true,
       };
     case "ADMIN":
       return {
@@ -25,6 +33,10 @@ export const getRolePermissions = (role: UserRole): RolePermissions => {
         canManageUsers: false,
         canViewHealthChecks: true,
         canDeleteServices: true,
+        canViewDashboard: true,
+        canViewAnalytics: true,
+        canManageSettings: true,
+        canAccessSuperAdmin: false,
       };
     case "USER":
     default:
@@ -34,6 +46,10 @@ export const getRolePermissions = (role: UserRole): RolePermissions => {
         canManageUsers: false,
         canViewHealthChecks: true,
         canDeleteServices: false,
+        canViewDashboard: true,
+        canViewAnalytics: false,
+        canManageSettings: false,
+        canAccessSuperAdmin: false,
       };
   }
 };
@@ -62,3 +78,15 @@ export const getRoleBadgeColor = (role: UserRole): string => {
       return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
   }
 };
+
+export function getMinimumRoleForPermission(permission: keyof RolePermissions): UserRole[] {
+  const rolesWithPermission: UserRole[] = [];
+
+  (["USER", "ADMIN", "SUPERADMIN"] as UserRole[]).forEach((role) => {
+    if (getRolePermissions(role)[permission]) {
+      rolesWithPermission.push(role);
+    }
+  });
+
+  return rolesWithPermission;
+}
