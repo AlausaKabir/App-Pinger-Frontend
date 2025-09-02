@@ -2,13 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { FaEye, FaEyeSlash, FaShieldAlt, FaServer } from 'react-icons/fa';
 import { HiMail, HiLockClosed } from 'react-icons/hi';
-import { toast } from 'react-toastify';
-import { useDispatch } from 'react-redux';
-import { setUser, setToken } from '@/lib/redux/reducers/user';
-import { loginUser } from '@/requests/auth';
+import { useLoginFlow } from '@/hooks/useLoginFlow';
+import LoginLoading from '@/components/auth/LoginLoading';
 
 interface LoginForm {
     email: string;
@@ -21,9 +18,8 @@ export default function LoginPage() {
         password: '',
     });
     const [showPassword, setShowPassword] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
-    const dispatch = useDispatch();
+
+    const { isLoading, showLoading, error, login, completeLogin } = useLoginFlow();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -35,31 +31,13 @@ export default function LoginPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
-
-        try {
-            const response = await loginUser(formData);
-
-            if (response.statusCode === 200) {
-                const { token, access_token, user } = response.data;
-
-                // Use token or access_token, whichever is available
-                const authToken = token || access_token;
-
-                // Store in Redux (handle undefined by converting to null)
-                dispatch(setToken(authToken || null));
-                dispatch(setUser(user || null));
-
-                toast.success('Welcome back! Redirecting to dashboard...');
-                router.push('/dashboard');
-            }
-        } catch (error: any) {
-            console.error('Login error:', error);
-            toast.error(error.response?.data?.message || 'Login failed. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
+        await login(formData);
     };
+
+    // Show loading screen after successful authentication
+    if (showLoading) {
+        return <LoginLoading onComplete={completeLogin} />;
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 flex items-center justify-center p-4">
