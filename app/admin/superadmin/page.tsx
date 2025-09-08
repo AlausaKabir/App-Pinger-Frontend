@@ -23,7 +23,6 @@ import Link from 'next/link';
 import { getUserStats, UserStats } from '@/requests/user';
 import { getServices } from '@/requests/services';
 import { isSuperAdmin, UserRole, getRoleBadgeColor } from '@/utils/permissions';
-import NavigationBar from '@/components/NavigationBar';
 
 export default function SuperAdminDashboard() {
     const [userStats, setUserStats] = useState<UserStats | null>(null);
@@ -71,8 +70,6 @@ export default function SuperAdminDashboard() {
     if (!canAccess) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <NavigationBar />
-
                 <div className="flex items-center justify-center min-h-[80vh]">
                     <div className="text-center max-w-md mx-auto p-8">
                         <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full mb-6">
@@ -113,7 +110,6 @@ export default function SuperAdminDashboard() {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <NavigationBar />
                 <div className="flex items-center justify-center min-h-[80vh]">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -126,8 +122,6 @@ export default function SuperAdminDashboard() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <NavigationBar />
-
             <div className="max-w-7xl mx-auto p-6">
                 {/* Header */}
                 <div className="mb-8">
@@ -170,7 +164,7 @@ export default function SuperAdminDashboard() {
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Admins</p>
                                 <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                                    {userStats ? (userStats.usersByRole.ADMIN + userStats.usersByRole.SUPERADMIN) : 0}
+                                    {userStats?.usersByRole ? ((userStats.usersByRole.ADMIN || 0) + (userStats.usersByRole.SUPERADMIN || 0)) : 0}
                                 </p>
                             </div>
                         </div>
@@ -220,19 +214,19 @@ export default function SuperAdminDashboard() {
                                 <div className="flex items-center justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Regular Users</span>
                                     <span className="font-semibold text-gray-900 dark:text-white">
-                                        {userStats ? userStats.usersByRole.USER : 0}
+                                        {userStats?.usersByRole?.USER || 0}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Administrators</span>
                                     <span className="font-semibold text-gray-900 dark:text-white">
-                                        {userStats ? userStats.usersByRole.ADMIN : 0}
+                                        {userStats?.usersByRole?.ADMIN || 0}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">SuperAdmins</span>
                                     <span className="font-semibold text-gray-900 dark:text-white">
-                                        {userStats ? userStats.usersByRole.SUPERADMIN : 0}
+                                        {userStats?.usersByRole?.SUPERADMIN || 0}
                                     </span>
                                 </div>
                             </div>
@@ -278,7 +272,7 @@ export default function SuperAdminDashboard() {
                                 <div className="flex items-center justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Admin Level Users</span>
                                     <span className="font-semibold text-gray-900 dark:text-white">
-                                        {userStats ? (userStats.usersByRole.ADMIN + userStats.usersByRole.SUPERADMIN) : 0}
+                                        {userStats?.usersByRole ? ((userStats.usersByRole.ADMIN || 0) + (userStats.usersByRole.SUPERADMIN || 0)) : 0}
                                     </span>
                                 </div>
                             </div>

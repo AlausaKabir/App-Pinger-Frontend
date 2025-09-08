@@ -2,13 +2,10 @@
 
 import Link from 'next/link';
 import { FaChartLine, FaArrowLeft, FaClock, FaRocket } from 'react-icons/fa';
-import NavigationBar from '@/components/NavigationBar';
 
 export default function AnalyticsPage() {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <NavigationBar />
-
             <div className="max-w-7xl mx-auto p-6">
                 {/* Header */}
                 <div className="mb-8">

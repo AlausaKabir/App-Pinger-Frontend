@@ -157,13 +157,13 @@ export default function UserManagementPage() {
                 </div>
 
                 {/* Stats Cards */}
-                {stats && (
+                {stats && stats.usersByRole && (
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalUsers}</p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.totalUsers || 0}</p>
                                 </div>
                                 <FaUsers className="text-3xl text-blue-600" />
                             </div>
@@ -173,7 +173,7 @@ export default function UserManagementPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">SuperAdmins</p>
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.usersByRole.SUPERADMIN}</p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.usersByRole?.SUPERADMIN || 0}</p>
                                 </div>
                                 <FaUserShield className="text-3xl text-red-600" />
                             </div>
@@ -183,7 +183,7 @@ export default function UserManagementPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Admins</p>
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.usersByRole.ADMIN}</p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.usersByRole?.ADMIN || 0}</p>
                                 </div>
                                 <FaUserCog className="text-3xl text-blue-600" />
                             </div>
@@ -193,7 +193,7 @@ export default function UserManagementPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Users</p>
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.usersByRole.USER}</p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.usersByRole?.USER || 0}</p>
                                 </div>
                                 <FaUsers className="text-3xl text-gray-600" />
                             </div>
@@ -248,7 +248,7 @@ export default function UserManagementPage() {
                         <div className="flex justify-center items-center py-12">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                         </div>
-                    ) : users.length === 0 ? (
+                    ) : !users || users.length === 0 ? (
                         <div className="text-center py-12">
                             <FaUsers className="text-6xl text-gray-400 mx-auto mb-4" />
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -279,7 +279,7 @@ export default function UserManagementPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                        {users.map((userData) => (
+                                        {users?.map((userData) => (
                                             <tr key={userData.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">

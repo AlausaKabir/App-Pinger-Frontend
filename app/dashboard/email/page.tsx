@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import { FaEnvelope, FaArrowLeft, FaClock, FaBell, FaUsers, FaChartLine, FaCog } from 'react-icons/fa';
-import NavigationBar from '@/components/NavigationBar';
 import { getRoleBadgeColor, UserRole, hasPermission } from '@/utils/permissions';
 
 export default function EmailPage() {
@@ -14,8 +13,6 @@ export default function EmailPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <NavigationBar />
-
             <div className="max-w-7xl mx-auto p-6">
                 {/* Header */}
                 <div className="mb-8">

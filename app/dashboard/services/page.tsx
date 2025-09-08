@@ -8,7 +8,6 @@ import { toast } from 'react-toastify';
 import Link from 'next/link';
 import { getServices, deleteService, Service } from '@/requests/services';
 import { hasPermission, UserRole } from '@/utils/permissions';
-import NavigationBar from '@/components/NavigationBar';
 
 export default function ServicesPage() {
     const [services, setServices] = useState<Service[]>([]);
@@ -78,8 +77,6 @@ export default function ServicesPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <NavigationBar />
-
             <div className="max-w-7xl mx-auto p-6">
                 {/* Header */}
                 <div className="mb-8">

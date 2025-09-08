@@ -2,7 +2,9 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaServer, FaTimes, FaHome, FaEnvelope, FaCog, FaChartLine, FaPlus } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/redux/store";
+import { FaServer, FaTimes, FaHome, FaEnvelope, FaCog, FaChartLine, FaPlus, FaShieldAlt, FaUsers, FaBell, FaCrown, FaUser } from "react-icons/fa";
 import { HiOutlineGlobeAlt } from "react-icons/hi";
 
 interface SidebarProps {
@@ -10,47 +12,79 @@ interface SidebarProps {
     onClose: () => void;
 }
 
-const menuItems = [
-    {
-        name: 'Dashboard',
-        href: '/dashboard',
-        icon: FaHome,
-        description: 'Overview & statistics'
-    },
-    {
-        name: 'Services',
-        href: '/dashboard/services',
-        icon: FaServer,
-        description: 'Manage monitored services'
-    },
-    {
-        name: 'Add Service',
-        href: '/dashboard/services/add',
-        icon: FaPlus,
-        description: 'Add new service'
-    },
-    {
-        name: 'Email Settings',
-        href: '/dashboard/email',
-        icon: FaEnvelope,
-        description: 'Notification settings'
-    },
-    {
-        name: 'Analytics',
-        href: '/dashboard/analytics',
-        icon: FaChartLine,
-        description: 'Performance insights'
-    },
-    {
-        name: 'Settings',
-        href: '/dashboard/settings',
-        icon: FaCog,
-        description: 'Account & preferences'
-    }
-];
-
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
+    const { user, role } = useSelector((state: RootState) => state.user);
+
+    // Get role from either the role field or user.role (fallback)
+    const userRole = role || user?.role;
+
+    // Combine menu items based on user role
+    const baseMenuItems = [
+        {
+            name: 'Dashboard',
+            href: '/dashboard',
+            icon: FaHome,
+            description: 'Overview & statistics'
+        },
+        {
+            name: 'Services',
+            href: '/dashboard/services',
+            icon: FaServer,
+            description: 'Manage monitored services'
+        },
+        {
+            name: 'Add Service',
+            href: '/dashboard/services/add',
+            icon: FaPlus,
+            description: 'Add new service'
+        },
+        {
+            name: 'Analytics',
+            href: '/dashboard/analytics',
+            icon: FaChartLine,
+            description: 'Performance insights'
+        },
+        {
+            name: 'Email Settings',
+            href: '/dashboard/email',
+            icon: FaEnvelope,
+            description: 'Notification settings'
+        },
+        {
+            name: 'Settings',
+            href: '/dashboard/settings',
+            icon: FaCog,
+            description: 'Account & preferences'
+        }
+    ];
+
+    // Admin menu items (only for ADMIN and SUPERADMIN)
+    const adminMenuItems = [
+        {
+            name: 'Email Management',
+            href: '/admin/emails',
+            icon: FaEnvelope,
+            description: 'Manage notification emails'
+        },
+        {
+            name: 'User Management',
+            href: '/admin/users',
+            icon: FaUsers,
+            description: 'Manage user accounts'
+        },
+        {
+            name: 'SuperAdmin Panel',
+            href: '/admin/superadmin',
+            icon: FaCrown,
+            description: 'SuperAdmin controls'
+        }
+    ];
+
+    // Combine menu items based on user role
+    const menuItems = (userRole === 'ADMIN' || userRole === 'SUPERADMIN')
+        ? [...baseMenuItems, ...adminMenuItems]
+        : baseMenuItems;
 
     return (
         <>
@@ -97,14 +131,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 href={item.href}
                                 onClick={() => onClose()}
                                 className={`flex items-center p-3 rounded-lg transition-all duration-200 group ${isActive
-                                        ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-l-4 border-blue-600'
-                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                                    ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-l-4 border-blue-600'
+                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                                     }`}
                             >
                                 <Icon
                                     className={`h-5 w-5 mr-3 transition-colors ${isActive
-                                            ? 'text-blue-600 dark:text-blue-400'
-                                            : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300'
+                                        ? 'text-blue-600 dark:text-blue-400'
+                                        : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300'
                                         }`}
                                 />
                                 <div className="flex-1">
@@ -118,8 +152,31 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     })}
                 </nav>
 
-                {/* Footer */}
+                {/* Footer with User Profile */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700">
+                    {/* User Profile Section */}
+                    <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                                <span className="text-white text-sm font-medium">
+                                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                                </span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                    {user?.email || 'User'}
+                                </p>
+                                <div className="flex items-center">
+                                    <FaShieldAlt className="mr-1 text-xs text-gray-500 dark:text-gray-400" />
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {userRole || 'USER'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* System Status */}
                     <div className="text-center">
                         <div className="flex items-center justify-center mb-2">
                             <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse mr-2"></div>

@@ -8,7 +8,8 @@ import { HiOutlineGlobeAlt } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 import { getServices, addService, deleteService, Service } from '@/requests/services';
 import { hasPermission, UserRole } from '@/utils/permissions';
-import NavigationBar from '@/components/NavigationBar';
+import MissionCriticalModal from '@/components/modals/MissionCriticalModal';
+import { useMissionCriticalCheck } from '@/hooks/useMissionCriticalCheck';
 
 export default function DashboardPage() {
     const [services, setServices] = useState<Service[]>([]);
@@ -22,6 +23,9 @@ export default function DashboardPage() {
 
     const { role } = useSelector((state: RootState) => state.user);
     const userRole = role as UserRole;
+
+    // Mission Critical Check for Admin/SuperAdmin
+    const { showModal, isChecking, closeModal, skipModal } = useMissionCriticalCheck();
 
     // Check permissions
     const canDeleteServices = hasPermission(userRole, 'canDeleteServices');
@@ -154,8 +158,6 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <NavigationBar />
-
             <div className="max-w-7xl mx-auto p-6">
                 <div className="space-y-6">
                     {/* Header */}
@@ -181,8 +183,8 @@ export default function DashboardPage() {
                             <button
                                 onClick={() => setAutoRefresh(!autoRefresh)}
                                 className={`inline-flex items-center px-3 py-2 text-xs font-medium rounded-lg transition-colors ${autoRefresh
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                                        : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                                    : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                                     }`}
                                 title={autoRefresh ? 'Disable auto-refresh' : 'Enable auto-refresh'}
                             >
@@ -258,10 +260,10 @@ export default function DashboardPage() {
                             <div
                                 key={service.id}
                                 className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 p-6 hover:shadow-md transition-all duration-300 ${service.healthStatus === 'DOWN'
-                                        ? 'service-down-intense border-red-500 dark:border-red-400'
-                                        : service.healthStatus === 'UP'
-                                            ? 'service-up border-green-200 dark:border-green-800'
-                                            : 'border-gray-200 dark:border-gray-700'
+                                    ? 'service-down-intense border-red-500 dark:border-red-400'
+                                    : service.healthStatus === 'UP'
+                                        ? 'service-up border-green-200 dark:border-green-800'
+                                        : 'border-gray-200 dark:border-gray-700'
                                     }`}
                             >
                                 <div className="flex items-start justify-between">
@@ -391,6 +393,13 @@ export default function DashboardPage() {
                     )}
                 </div>
             </div>
+
+            {/* Mission Critical Modal */}
+            <MissionCriticalModal
+                isOpen={showModal}
+                onClose={closeModal}
+                onSkip={skipModal}
+            />
         </div>
     );
 }
