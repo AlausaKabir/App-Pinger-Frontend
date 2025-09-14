@@ -39,11 +39,11 @@ export function Header({ onMenuClick }: HeaderProps) {
 
                     <Link
                         className="flex items-center text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                        href="/dashboard"
+                        href="/"
                         aria-label="Pinger"
                     >
                         <FaServer className="h-6 w-6 mr-2 text-blue-600" />
-                        <span className="hidden sm:block">Pinger</span>
+                        <span className="hidden sm:block">Pinger1111111</span>
                     </Link>
                 </div>
 

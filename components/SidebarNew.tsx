@@ -103,13 +103,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                    <Link
+                    {/* <Link
                         href="/dashboard"
                         className="flex items-center text-xl font-bold text-gray-900 dark:text-white"
                     >
                         <FaServer className="h-6 w-6 mr-2 text-blue-600" />
                         Pinger
-                    </Link>
+                    </Link> */}
 
                     <button
                         onClick={onClose}
@@ -120,7 +120,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </div>
 
                 {/* Navigation */}
-                <nav className="p-4 space-y-2">
+                <nav className="p-4 mt-10 space-y-2">
                     {menuItems.map((item) => {
                         const isActive = pathname === item.href;
                         const Icon = item.icon;

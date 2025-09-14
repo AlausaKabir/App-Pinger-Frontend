@@ -14,7 +14,7 @@ export default function Home() {
     if (loggedIn && token) {
       router.push('/dashboard');
     } else {
-      router.push('/auth/login');
+      router.push('/landing');
     }
   }, [loggedIn, token, router]);
 

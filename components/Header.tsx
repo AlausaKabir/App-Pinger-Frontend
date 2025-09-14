@@ -44,7 +44,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                         aria-label="Pinger"
                     >
                         <FaServer className="h-6 w-6 mr-2 text-blue-600" />
-                        <span className="hidden sm:block">Pinger</span>
+                        <span className="hidden sm:block">Pinger1111111</span>
                     </Link>
                 </div>
 
@@ -138,12 +138,12 @@ export function Header({ onMenuClick }: HeaderProps) {
         </header>
     );
 }
-    <div className="mt-2 py-2 first:pt-0 last:pb-0">
-        <Link
-            className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
-            href="#"
-        >
-            <CiUser size={20} />
-            Profile
-        </Link>
-    </div>
+<div className="mt-2 py-2 first:pt-0 last:pb-0">
+    <Link
+        className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
+        href="#"
+    >
+        <CiUser size={20} />
+        Profile
+    </Link>
+</div>
