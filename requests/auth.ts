@@ -1,5 +1,5 @@
-import { API } from "@/api";
-import { storeToken } from "@/api/crypto";
+import { secureAPI } from "@/utils/secureAPI";
+import { AuthSecurity, ValidationMiddleware, SecuritySchemas } from "@/utils/security";
 
 export interface LoginRequest {
   email: string;
@@ -24,34 +24,85 @@ export interface AuthResponse {
 
 export const loginUser = async (credentials: LoginRequest): Promise<AuthResponse> => {
   try {
-    console.log("🔍 API Base URL:", process.env.NEXT_PUBLIC_API_URL);
-    console.log("🔍 Login request to:", "/auth/login");
-    console.log("🔍 Credentials:", { email: credentials.email, password: "***" });
-
-    const response = await API.post("/auth/login", credentials);
-
-    console.log("✅ Login response:", response.data);
-
-    // Store token if login successful
-    if (response.data.statusCode === 200 && response.data.data.token) {
-      storeToken(response.data.data.token);
+    // Validate and sanitize input
+    const validation = ValidationMiddleware.validateForm(SecuritySchemas.loginSchema, credentials);
+    if (!validation.success) {
+      throw new Error(`Validation failed: ${validation.errors?.join(", ")}`);
     }
 
-    return response.data;
+    console.log("🔍 Secure login request to:", "/auth/login");
+    console.log("🔍 Sanitized email:", validation.data?.email);
+
+    const response = await secureAPI.post<AuthResponse>("/auth/login", validation.data);
+
+    console.log("✅ Login response status:", response.statusCode);
+
+    // Secure token storage if login successful
+    if (response.statusCode === 200 && response.data.token) {
+      AuthSecurity.storeToken(response.data.token);
+    }
+
+    return response;
   } catch (error: any) {
-    console.error("❌ Login request failed:", error);
-    console.error("❌ Error response:", error.response?.data);
-    throw error;
+    console.error("❌ Secure login failed:", error.message);
+    throw new Error(error.message || "Login failed");
   }
 };
 
 export const registerUser = async (userData: RegisterRequest): Promise<AuthResponse> => {
   try {
-    const response = await API.post("/auth/signup", userData);
-    return response.data;
-  } catch (error) {
-    console.error("Registration request failed:", error);
-    throw error;
+    // Validate and sanitize input
+    const validation = ValidationMiddleware.validateForm(SecuritySchemas.registerSchema, {
+      ...userData,
+      confirmPassword: userData.password,
+    });
+
+    if (!validation.success) {
+      throw new Error(`Validation failed: ${validation.errors?.join(", ")}`);
+    }
+
+    console.log("🔍 Secure registration request to:", "/auth/signup");
+    console.log("🔍 Sanitized email:", validation.data?.email);
+
+    const response = await secureAPI.post<AuthResponse>("/auth/signup", {
+      email: validation.data?.email,
+      password: validation.data?.password,
+    });
+
+    console.log("✅ Registration response status:", response.statusCode);
+
+    return response;
+  } catch (error: any) {
+    console.error("❌ Secure registration failed:", error.message);
+    throw new Error(error.message || "Registration failed");
+  }
+};
+
+export const logoutUser = async (): Promise<void> => {
+  try {
+    await secureAPI.post("/auth/logout");
+    AuthSecurity.clearTokens();
+    console.log("✅ User logged out securely");
+  } catch (error: any) {
+    console.error("❌ Logout failed:", error.message);
+    // Clear tokens anyway for security
+    AuthSecurity.clearTokens();
+  }
+};
+
+export const refreshToken = async (): Promise<AuthResponse> => {
+  try {
+    const response = await secureAPI.post<AuthResponse>("/auth/refresh");
+
+    if (response.statusCode === 200 && response.data.token) {
+      AuthSecurity.storeToken(response.data.token);
+    }
+
+    return response;
+  } catch (error: any) {
+    console.error("❌ Token refresh failed:", error.message);
+    AuthSecurity.clearTokens();
+    throw new Error("Session expired. Please login again.");
   }
 };
 

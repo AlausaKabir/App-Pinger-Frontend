@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { RootState } from '@/lib/redux/store';
 import { hasPermission, UserRole } from '@/utils/permissions';
-import { FaEnvelope, FaUsers, FaShieldAlt, FaCog, FaChartBar } from 'react-icons/fa';
+import { FaEnvelope, FaUsers, FaShieldAlt, FaCog, FaChartBar, FaUserCircle } from 'react-icons/fa';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -15,6 +15,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const pathname = usePathname();
     const { user, role } = useSelector((state: RootState) => state.user);
     const userRole = role as UserRole;
+
+    // Define permissions first
+    const permissions = {
+        canManageEmails: hasPermission(userRole, 'canManageEmails'),
+        canManageUsers: hasPermission(userRole, 'canManageUsers'),
+        canAccessSuperAdmin: hasPermission(userRole, 'canAccessSuperAdmin'),
+    };
 
     // Admin navigation items
     const navigationItems = [
@@ -38,12 +45,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         },
     ];
 
-    const permissions = {
-        canManageEmails: hasPermission(userRole, 'canManageEmails'),
-        canManageUsers: hasPermission(userRole, 'canManageUsers'),
-        canAccessSuperAdmin: hasPermission(userRole, 'canAccessSuperAdmin'),
-    };
-
     // Filter navigation items based on permissions
     const allowedNavItems = navigationItems.filter(item => permissions[item.permission]);
 
@@ -61,13 +62,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                 Manage your Pinger application
                             </p>
                         </div>
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                              <FaUserCircle className="h-6 w-6 text-gray-500 dark:text-gray-300" />
+
                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                                Welcome, {user?.email}
+                                Welcome, {user?.name ?? "User"}
                             </span>
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${userRole === 'SUPERADMIN'
-                                    ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300'
-                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${userRole === 'USER'
+                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                                : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300'
                                 }`}>
                                 {userRole}
                             </span>
@@ -90,8 +93,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                         key={item.href}
                                         href={item.href}
                                         className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-all duration-200 ${isActive
-                                                ? 'bg-blue-100 text-blue-700 border-l-4 border-blue-500 dark:bg-blue-900 dark:text-blue-300'
-                                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white'
+                                            ? 'bg-blue-100 text-blue-700 border-l-4 border-blue-500 dark:bg-blue-900 dark:text-blue-300'
+                                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white'
                                             }`}
                                     >
                                         <Icon className="h-5 w-5 mr-3" />

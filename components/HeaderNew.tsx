@@ -43,7 +43,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                         aria-label="Pinger"
                     >
                         <FaServer className="h-6 w-6 mr-2 text-blue-600" />
-                        <span className="hidden sm:block">Pinger1111111</span>
+                        <span className="hidden sm:block">Pinger</span>
                     </Link>
                 </div>
 

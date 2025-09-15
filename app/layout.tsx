@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { AppProvider } from "@/components/AppProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { SecurityProvider } from "@/components/security/SecureComponents";
 import { PrelineScript } from "@/components/PrelineScripts";
 import ToastProvider from "@/utils/ToastProvider";
 
@@ -34,12 +35,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300`}
       >
         <ThemeProvider>
-          <AppProvider>
-            <ToastProvider>
-              {children}
-              <PrelineScript />
-            </ToastProvider>
-          </AppProvider>
+          <SecurityProvider>
+            <AppProvider>
+              <ToastProvider>
+                {children}
+                <PrelineScript />
+              </ToastProvider>
+            </AppProvider>
+          </SecurityProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,4 +1,5 @@
-import { API } from "@/api";
+import { secureAPI } from "@/utils/secureAPI";
+import { ValidationMiddleware, SecuritySchemas, InputSanitizer } from "@/utils/security";
 
 export interface Service {
   id: string;
@@ -29,33 +30,50 @@ export interface ServiceResponse {
 // Get all services
 export const getServices = async (): Promise<ServiceResponse> => {
   try {
-    const response = await API.get("/service-check/services");
-    return response.data;
-  } catch (error) {
-    console.error("Get services request failed:", error);
-    throw error;
+    const response = await secureAPI.get<ServiceResponse>("/service-check");
+    return response;
+  } catch (error: any) {
+    console.error("❌ Secure get services failed:", error.message);
+    throw new Error(error.message || "Failed to fetch services");
   }
 };
 
 // Add a new service
 export const addService = async (serviceData: CreateServiceRequest): Promise<ServiceResponse> => {
   try {
-    console.log("🔍 Adding service with data:", serviceData);
-    const response = await API.post("/service-check/register", serviceData);
-    return response.data;
-  } catch (error) {
-    console.error("Add service request failed:", error);
-    throw error;
+    // Validate and sanitize input
+    const validation = ValidationMiddleware.validateForm(SecuritySchemas.serviceSchema, {
+      name: serviceData.name,
+      url: serviceData.url,
+      description: serviceData.description,
+    });
+
+    if (!validation.success) {
+      throw new Error(`Validation failed: ${validation.errors?.join(", ")}`);
+    }
+
+    console.log("🔍 Adding service with secure validation:", validation.data?.name);
+    const response = await secureAPI.post<ServiceResponse>("/service-check", validation.data);
+    return response;
+  } catch (error: any) {
+    console.error("❌ Secure add service failed:", error.message);
+    throw new Error(error.message || "Failed to add service");
   }
 };
 
 // Delete a service
 export const deleteService = async (serviceId: string): Promise<ServiceResponse> => {
   try {
-    const response = await API.delete(`/service-check/delete/${serviceId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Delete service request failed:", error);
-    throw error;
+    // Sanitize service ID
+    const cleanServiceId = InputSanitizer.removeDangerousChars(serviceId);
+    if (!cleanServiceId) {
+      throw new Error("Invalid service ID");
+    }
+
+    const response = await secureAPI.delete<ServiceResponse>(`/service-check/${cleanServiceId}`);
+    return response;
+  } catch (error: any) {
+    console.error("❌ Secure delete service failed:", error.message);
+    throw new Error(error.message || "Failed to delete service");
   }
 };

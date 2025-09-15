@@ -13,6 +13,7 @@ export default function UserManagementPage() {
     const [stats, setStats] = useState<UserStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState<UserRole | ''>('');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -24,6 +25,16 @@ export default function UserManagementPage() {
     // Check if user is SuperAdmin
     const canManageUsers = isSuperAdmin(userRole);
 
+    // Debounce search term
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+            setPage(1); // Reset to first page when search changes
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
     useEffect(() => {
         if (!canManageUsers) {
             toast.error('You do not have permission to manage users');
@@ -31,7 +42,7 @@ export default function UserManagementPage() {
         }
         loadUsers();
         loadStats();
-    }, [canManageUsers, page, roleFilter, searchTerm]);
+    }, [canManageUsers, page, roleFilter, debouncedSearchTerm]);
 
     const loadUsers = async () => {
         try {
@@ -40,7 +51,7 @@ export default function UserManagementPage() {
                 page,
                 limit: 10,
                 role: roleFilter || undefined,
-                search: searchTerm || undefined,
+                search: debouncedSearchTerm || undefined,
             });
 
             if (response.statusCode === 200) {
@@ -92,8 +103,7 @@ export default function UserManagementPage() {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        setPage(1);
-        loadUsers();
+        // Search is now handled by debounced effect, so this is just for form submission
     };
 
     if (!canManageUsers) {
