@@ -23,9 +23,10 @@ import {
     FiDollarSign
 } from 'react-icons/fi';
 import { useTheme } from '@/components/ThemeProvider';
+import LandingNav from '@/components/landing/LandingNav';
 
 const DocsPage: React.FC = () => {
-    const { theme } = useTheme();
+    const { theme, toggleTheme } = useTheme();
     const isDarkMode = theme === 'dark';
 
     const containerVariants = {
@@ -47,8 +48,12 @@ const DocsPage: React.FC = () => {
     return (
         <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
             }`}>
+
+            {/* Landing Navigation */}
+            <LandingNav isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+
             {/* Hero Section */}
-            <section className="relative overflow-hidden py-20">
+            <section className="relative overflow-hidden py-20 pt-32">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
                 <motion.div
                     className="container mx-auto px-6 relative z-10"

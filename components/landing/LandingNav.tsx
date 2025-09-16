@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface LandingNavProps {
     isDarkMode: boolean;
@@ -8,18 +9,27 @@ interface LandingNavProps {
 }
 
 const LandingNav: React.FC<LandingNavProps> = ({ isDarkMode, toggleTheme }) => {
+    const pathname = usePathname();
+
     const navItems = [
-        { name: 'Features', href: '#features' },
-        { name: 'Demo', href: '#demo' },
-        { name: 'Pricing', href: '#pricing' },
+        { name: 'Features', href: '/#features' },
+        { name: 'Demo', href: '/#demo' },
+        { name: 'Pricing', href: '/#pricing' },
         { name: 'Docs', href: '/docs' }
     ];
+
+    const isActive = (href: string) => {
+        if (href === '/docs') {
+            return pathname.startsWith('/docs');
+        }
+        return pathname === '/' && href.includes('#');
+    };
 
     return (
         <motion.nav
             className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md transition-all duration-300 ${isDarkMode
-                    ? 'bg-gray-900/80 border-b border-gray-800'
-                    : 'bg-white/80 border-b border-gray-200'
+                ? 'bg-gray-900/80 border-b border-gray-800'
+                : 'bg-white/80 border-b border-gray-200'
                 }`}
             initial={{ y: -100 }}
             animate={{ y: 0 }}
@@ -50,18 +60,25 @@ const LandingNav: React.FC<LandingNavProps> = ({ isDarkMode, toggleTheme }) => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4, duration: 0.6 }}
                     >
-                        {navItems.map((item, index) => (
-                            <Link
-                                key={index}
-                                href={item.href}
-                                className={`text-sm font-medium transition-colors duration-200 hover:scale-105 ${isDarkMode
-                                        ? 'text-gray-300 hover:text-white'
-                                        : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                            >
-                                {item.name}
-                            </Link>
-                        ))}
+                        {navItems.map((item, index) => {
+                            const active = isActive(item.href);
+                            return (
+                                <Link
+                                    key={index}
+                                    href={item.href}
+                                    className={`text-sm font-medium transition-all duration-200 hover:scale-105 px-3 py-2 rounded-lg ${active
+                                            ? isDarkMode
+                                                ? 'text-white bg-gray-800/50 border border-gray-700'
+                                                : 'text-gray-900 bg-gray-100/50 border border-gray-200'
+                                            : isDarkMode
+                                                ? 'text-gray-300 hover:text-white hover:bg-gray-800/30'
+                                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/30'
+                                        }`}
+                                >
+                                    {item.name}
+                                </Link>
+                            );
+                        })}
                     </motion.div>
 
                     {/* Right Section */}
@@ -75,8 +92,8 @@ const LandingNav: React.FC<LandingNavProps> = ({ isDarkMode, toggleTheme }) => {
                         <motion.button
                             onClick={toggleTheme}
                             className={`p-2 rounded-lg transition-all duration-300 ${isDarkMode
-                                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
                                 }`}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -98,8 +115,8 @@ const LandingNav: React.FC<LandingNavProps> = ({ isDarkMode, toggleTheme }) => {
                             <Link href="/auth/login">
                                 <motion.button
                                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isDarkMode
-                                            ? 'text-gray-300 hover:text-white hover:bg-gray-800'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                                        ? 'text-gray-300 hover:text-white hover:bg-gray-800'
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                                         }`}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}

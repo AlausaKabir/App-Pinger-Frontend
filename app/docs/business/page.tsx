@@ -7,7 +7,6 @@ import {
     FiDollarSign,
     FiUsers,
     FiGlobe,
-    FiArrowLeft,
     FiTarget,
     FiPieChart,
     FiBarChart,
@@ -18,9 +17,10 @@ import {
 } from 'react-icons/fi';
 import Link from 'next/link';
 import { useTheme } from '@/components/ThemeProvider';
+import LandingNav from '@/components/landing/LandingNav';
 
 const BusinessDocsPage: React.FC = () => {
-    const { theme } = useTheme();
+    const { theme, toggleTheme } = useTheme();
     const isDarkMode = theme === 'dark';
 
     const revenueProjections = [
@@ -65,17 +65,13 @@ const BusinessDocsPage: React.FC = () => {
     return (
         <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
             }`}>
-            {/* Header */}
-            <div className="border-b border-gray-200 dark:border-gray-700">
-                <div className="container mx-auto px-6 py-8">
-                    <Link
-                        href="/docs"
-                        className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-6"
-                    >
-                        <FiArrowLeft className="h-4 w-4" />
-                        Back to Documentation
-                    </Link>
 
+            {/* Landing Navigation */}
+            <LandingNav isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+
+            {/* Header */}
+            <div className="border-b border-gray-200 dark:border-gray-700 pt-20">
+                <div className="container mx-auto px-6 py-8">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
