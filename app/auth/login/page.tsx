@@ -2,14 +2,22 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { FaEye, FaEyeSlash, FaShieldAlt, FaServer } from 'react-icons/fa';
+import { FaShieldAlt, FaServer } from 'react-icons/fa';
 import { HiMail, HiLockClosed } from 'react-icons/hi';
 import { useLoginFlow } from '@/hooks/useLoginFlow';
 import LoginLoading from '@/components/auth/LoginLoading';
+import { FormInput } from '@/components/ui/FormInput';
+import { FormAlert } from '@/components/ui/ErrorComponents';
+import { validateEmail, validateRequired } from '@/utils/validation';
 
 interface LoginForm {
     email: string;
     password: string;
+}
+
+interface FormErrors {
+    email?: string;
+    password?: string;
 }
 
 export default function LoginPage() {
@@ -17,20 +25,79 @@ export default function LoginPage() {
         email: '',
         password: '',
     });
-    const [showPassword, setShowPassword] = useState(false);
+
+    const [errors, setErrors] = useState<FormErrors>({});
+    const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
 
     const { isLoading, showLoading, error, login, completeLogin } = useLoginFlow();
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+    // Validate individual fields
+    const validateField = (name: string, value: string): string | undefined => {
+        switch (name) {
+            case 'email':
+                const emailValidation = validateEmail(value);
+                return emailValidation.isValid ? undefined : emailValidation.error;
+            case 'password':
+                const passwordValidation = validateRequired(value, 'Password');
+                return passwordValidation.isValid ? undefined : passwordValidation.error;
+            default:
+                return undefined;
+        }
+    };
+
+    // Handle field changes with validation
+    const handleFieldChange = (name: string, value: string) => {
+        setFormData(prev => ({ ...prev, [name]: value }));
+
+        // Clear errors when user starts typing
+        if (errors[name as keyof FormErrors]) {
+            setErrors(prev => ({ ...prev, [name]: undefined }));
+        }
+
+        // Validate on change for touched fields
+        if (touchedFields[name]) {
+            const error = validateField(name, value);
+            setErrors(prev => ({ ...prev, [name]: error }));
+        }
+    };
+
+    // Handle field blur with validation
+    const handleFieldBlur = (name: string, value: string) => {
+        setTouchedFields(prev => ({ ...prev, [name]: true }));
+        const error = validateField(name, value);
+        setErrors(prev => ({ ...prev, [name]: error }));
+    };
+
+    // Validate entire form
+    const validateForm = (): boolean => {
+        const newErrors: FormErrors = {};
+
+        // Validate email
+        const emailValidation = validateEmail(formData.email);
+        if (!emailValidation.isValid) {
+            newErrors.email = emailValidation.error;
+        }
+
+        // Validate password
+        const passwordValidation = validateRequired(formData.password, 'Password');
+        if (!passwordValidation.isValid) {
+            newErrors.password = passwordValidation.error;
+        }
+
+        setErrors(newErrors);
+        setTouchedFields({ email: true, password: true });
+
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate form before submission
+        if (!validateForm()) {
+            return;
+        }
+
         await login(formData);
     };
 
@@ -70,61 +137,50 @@ export default function LoginPage() {
 
                 {/* Login Form */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-8">
+                    {/* Main Error Alert */}
+                    {error && (
+                        <FormAlert
+                            type="error"
+                            title="Login Failed"
+                            message={error}
+                            className="mb-6"
+                        />
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Email Field */}
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Email Address
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <HiMail className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    className="input-field pl-10"
-                                    placeholder="Enter your email"
-                                    required
-                                />
-                            </div>
-                        </div>
+                        <FormInput
+                            label="Email Address"
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={(e) => handleFieldChange('email', e.target.value)}
+                            onBlur={(e) => handleFieldBlur('email', e.target.value)}
+                            error={errors.email}
+                            leftIcon={<HiMail />}
+                            placeholder="Enter your email address"
+                            required
+                            autoComplete="email"
+                            validator={(value) => validateEmail(value)}
+                            validateOnBlur
+                        />
 
                         {/* Password Field */}
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Password
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <HiLockClosed className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    id="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    className="input-field pl-10 pr-10"
-                                    placeholder="Enter your password"
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? (
-                                        <FaEyeSlash className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                                    ) : (
-                                        <FaEye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
+                        <FormInput
+                            label="Password"
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={(e) => handleFieldChange('password', e.target.value)}
+                            onBlur={(e) => handleFieldBlur('password', e.target.value)}
+                            error={errors.password}
+                            leftIcon={<HiLockClosed />}
+                            placeholder="Enter your password"
+                            required
+                            autoComplete="current-password"
+                            validator={(value) => validateRequired(value, 'Password')}
+                            validateOnBlur
+                        />
 
                         {/* Submit Button */}
                         <button

@@ -3,15 +3,24 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FaEye, FaEyeSlash, FaUserPlus, FaServer } from 'react-icons/fa';
-import { HiMail, HiLockClosed, HiUser } from 'react-icons/hi';
+import { FaUserPlus, FaServer } from 'react-icons/fa';
+import { HiMail, HiLockClosed } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 import { registerUser } from '@/requests/auth';
+import { FormInput } from '@/components/ui/FormInput';
+import { FormAlert, PasswordStrengthIndicator } from '@/components/ui/ErrorComponents';
+import { validateEmail, validatePassword, validatePasswordConfirmation } from '@/utils/validation';
 
 interface RegisterForm {
     email: string;
     password: string;
     confirmPassword: string;
+}
+
+interface FormErrors {
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
 }
 
 export default function RegisterPage() {
@@ -20,37 +29,102 @@ export default function RegisterPage() {
         password: '',
         confirmPassword: '',
     });
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const [errors, setErrors] = useState<FormErrors>({});
+    const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
     const [isLoading, setIsLoading] = useState(false);
+    const [serverError, setServerError] = useState<string>('');
+
     const router = useRouter();
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+    // Validate individual fields
+    const validateField = (name: string, value: string): string | undefined => {
+        switch (name) {
+            case 'email':
+                const emailValidation = validateEmail(value);
+                return emailValidation.isValid ? undefined : emailValidation.error;
+            case 'password':
+                const passwordValidation = validatePassword(value);
+                return passwordValidation.isValid ? undefined : passwordValidation.error;
+            case 'confirmPassword':
+                const confirmValidation = validatePasswordConfirmation(formData.password, value);
+                return confirmValidation.isValid ? undefined : confirmValidation.error;
+            default:
+                return undefined;
+        }
     };
 
-    const validateForm = () => {
-        if (formData.password !== formData.confirmPassword) {
-            toast.error('Passwords do not match');
-            return false;
+    // Handle field changes with validation
+    const handleFieldChange = (name: string, value: string) => {
+        setFormData(prev => ({ ...prev, [name]: value }));
+
+        // Clear server error when user starts typing
+        if (serverError) {
+            setServerError('');
         }
-        if (formData.password.length < 6) {
-            toast.error('Password must be at least 6 characters long');
-            return false;
+
+        // Clear field errors when user starts typing
+        if (errors[name as keyof FormErrors]) {
+            setErrors(prev => ({ ...prev, [name]: undefined }));
         }
-        return true;
+
+        // Validate on change for touched fields
+        if (touchedFields[name]) {
+            const error = validateField(name, value);
+            setErrors(prev => ({ ...prev, [name]: error }));
+        }
+
+        // Special case: if password changes, revalidate confirm password
+        if (name === 'password' && touchedFields.confirmPassword) {
+            const confirmError = validatePasswordConfirmation(value, formData.confirmPassword);
+            setErrors(prev => ({ ...prev, confirmPassword: confirmError.isValid ? undefined : confirmError.error }));
+        }
     };
 
+    // Handle field blur with validation
+    const handleFieldBlur = (name: string, value: string) => {
+        setTouchedFields(prev => ({ ...prev, [name]: true }));
+        const error = validateField(name, value);
+        setErrors(prev => ({ ...prev, [name]: error }));
+    };
+
+    // Validate entire form
+    const validateForm = (): boolean => {
+        const newErrors: FormErrors = {};
+
+        // Validate email
+        const emailValidation = validateEmail(formData.email);
+        if (!emailValidation.isValid) {
+            newErrors.email = emailValidation.error;
+        }
+
+        // Validate password
+        const passwordValidation = validatePassword(formData.password);
+        if (!passwordValidation.isValid) {
+            newErrors.password = passwordValidation.error;
+        }
+
+        // Validate password confirmation
+        const confirmValidation = validatePasswordConfirmation(formData.password, formData.confirmPassword);
+        if (!confirmValidation.isValid) {
+            newErrors.confirmPassword = confirmValidation.error;
+        }
+
+        setErrors(newErrors);
+        setTouchedFields({ email: true, password: true, confirmPassword: true });
+
+        return Object.keys(newErrors).length === 0;
+    };
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validateForm()) return;
+        // Validate form before submission
+        if (!validateForm()) {
+            return;
+        }
 
         setIsLoading(true);
+        setServerError('');
 
         try {
             const response = await registerUser({
@@ -64,7 +138,9 @@ export default function RegisterPage() {
             }
         } catch (error: any) {
             console.error('Registration error:', error);
-            toast.error(error.response?.data?.message || 'Registration failed. Please try again.');
+            const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+            setServerError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -101,95 +177,81 @@ export default function RegisterPage() {
 
                 {/* Registration Form */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-8">
+                    {/* Server Error Alert */}
+                    {serverError && (
+                        <FormAlert
+                            type="error"
+                            title="Registration Failed"
+                            message={serverError}
+                            className="mb-6"
+                        />
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Email Field */}
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Email Address
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <HiMail className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    className="input-field pl-10"
-                                    placeholder="Enter your email"
-                                    required
-                                />
-                            </div>
-                        </div>
+                        <FormInput
+                            label="Email Address"
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={(e) => handleFieldChange('email', e.target.value)}
+                            onBlur={(e) => handleFieldBlur('email', e.target.value)}
+                            error={errors.email}
+                            leftIcon={<HiMail />}
+                            placeholder="Enter your email address"
+                            required
+                            autoComplete="email"
+                            validator={(value) => validateEmail(value)}
+                            validateOnBlur
+                            isLoading={isLoading}
+                        />
 
                         {/* Password Field */}
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Password
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <HiLockClosed className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    id="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    className="input-field pl-10 pr-10"
-                                    placeholder="Create a password"
-                                    required
-                                    minLength={6}
+                            <FormInput
+                                label="Password"
+                                type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={(e) => handleFieldChange('password', e.target.value)}
+                                onBlur={(e) => handleFieldBlur('password', e.target.value)}
+                                error={errors.password}
+                                leftIcon={<HiLockClosed />}
+                                placeholder="Create a strong password"
+                                required
+                                autoComplete="new-password"
+                                validator={(value) => validatePassword(value)}
+                                validateOnBlur
+                                isLoading={isLoading}
+                            />
+
+                            {/* Password Strength Indicator */}
+                            {formData.password && (
+                                <PasswordStrengthIndicator
+                                    password={formData.password}
+                                    showFeedback
+                                    className="mt-2"
                                 />
-                                <button
-                                    type="button"
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? (
-                                        <FaEyeSlash className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                                    ) : (
-                                        <FaEye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                                    )}
-                                </button>
-                            </div>
+                            )}
                         </div>
 
                         {/* Confirm Password Field */}
-                        <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Confirm Password
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <HiLockClosed className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    id="confirmPassword"
-                                    name="confirmPassword"
-                                    value={formData.confirmPassword}
-                                    onChange={handleInputChange}
-                                    className="input-field pl-10 pr-10"
-                                    placeholder="Confirm your password"
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                >
-                                    {showConfirmPassword ? (
-                                        <FaEyeSlash className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                                    ) : (
-                                        <FaEye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
+                        <FormInput
+                            label="Confirm Password"
+                            type="password"
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
+                            onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
+                            onBlur={(e) => handleFieldBlur('confirmPassword', e.target.value)}
+                            error={errors.confirmPassword}
+                            leftIcon={<HiLockClosed />}
+                            placeholder="Confirm your password"
+                            required
+                            autoComplete="new-password"
+                            validator={(value) => validatePasswordConfirmation(formData.password, value)}
+                            validateOnBlur
+                            isLoading={isLoading}
+                        />
 
                         {/* Submit Button */}
                         <button
